@@ -9,6 +9,7 @@ public abstract class AIPlayer extends Player {
         registerAIPlayerType("RandomAI", RandomAI.class);
         registerAIPlayerType("GreedyAI", GreedyAI.class);
         // Add more AIPlayer subclasses here as needed
+
     }
     @Override
     public boolean isHuman() {
