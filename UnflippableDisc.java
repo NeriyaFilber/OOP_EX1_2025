@@ -13,6 +13,10 @@ public class UnflippableDisc implements Disc {
         _owner = player;
     }
 
+    public UnflippableDisc(UnflippableDisc disc){
+        this._owner = disc.get_owner();
+    }
+
     /**
      * Get the player who owns the Disc.
      *
@@ -36,10 +40,10 @@ public class UnflippableDisc implements Disc {
     /**
      * Get the type of the disc.
      *
-     * @return textual representation of Unflippable disk.
+     * @return textual representation of Unflappable disk.
      */
     @Override
     public String getType() {
-        return "⭕";
+        return "UnflappableDisc";
     }
 }

@@ -13,6 +13,9 @@ public class SimpleDisc implements Disc {
         _owner = player;
     }
 
+    public SimpleDisc(SimpleDisc disc){
+        this._owner = disc.get_owner();
+    }
     /**
      * Get the player who owns the Disc.
      *

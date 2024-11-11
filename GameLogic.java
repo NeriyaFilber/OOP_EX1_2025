@@ -1,7 +1,23 @@
+import java.util.ArrayList;
 import java.util.List;
 
 public class GameLogic implements PlayableLogic {
+    private final int BOARD_SIZE = 8;
+    private Player _first_player;
+    private Player _seconed_player;
+    private ArrayList<Position> _valid_moves;
+    private boolean _turn;
+    private Disc[][] _board;
 
+
+    public GameLogic(){
+        _board = new Disc[BOARD_SIZE][BOARD_SIZE];
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                _board[i][j] = null;
+            }
+        }
+    }
     /**
      * Attempt to locate a disc on the game board.
      *
@@ -11,7 +27,11 @@ public class GameLogic implements PlayableLogic {
      */
     @Override
     public boolean locate_disc(Position a, Disc disc) {
-        return false;
+        if (!(_board[a.row()][a.col()] == null)){
+            return false;
+        }
+        _board[a.row()][a.col()] = disc;
+        return true;
     }
 
     /**
@@ -22,7 +42,16 @@ public class GameLogic implements PlayableLogic {
      */
     @Override
     public Disc getDiscAtPosition(Position position) {
-        return null;
+        if (_board[position.row()][position.col()] == null){
+            return null;
+        }
+        if (_board[position.row()][position.col()].getType() == "UnflappableDisc"){
+            return new UnflippableDisc(_board[position.row()][position.col()].get_owner());
+        }
+        if (_board[position.row()][position.col()].getType() == "BombDisc"){
+            return new BombDisc(_board[position.row()][position.col()].get_owner());
+        }
+        return new SimpleDisc(_board[position.row()][position.col()].get_owner());
     }
 
     /**
@@ -32,7 +61,7 @@ public class GameLogic implements PlayableLogic {
      */
     @Override
     public int getBoardSize() {
-        return 0;
+        return BOARD_SIZE;
     }
 
     /**
@@ -42,7 +71,10 @@ public class GameLogic implements PlayableLogic {
      */
     @Override
     public List<Position> ValidMoves() {
-        return null;
+        _valid_moves = new ArrayList<>();
+        Position pos = new Position(5,5);
+        _valid_moves.add(pos);
+        return _valid_moves;
     }
 
     /**
@@ -53,6 +85,7 @@ public class GameLogic implements PlayableLogic {
      */
     @Override
     public int countFlips(Position a) {
+
         return 0;
     }
 
@@ -63,7 +96,7 @@ public class GameLogic implements PlayableLogic {
      */
     @Override
     public Player getFirstPlayer() {
-        return null;
+        return _first_player;
     }
 
     /**
@@ -73,7 +106,7 @@ public class GameLogic implements PlayableLogic {
      */
     @Override
     public Player getSecondPlayer() {
-        return null;
+        return _seconed_player;
     }
 
     /**
@@ -84,7 +117,8 @@ public class GameLogic implements PlayableLogic {
      */
     @Override
     public void setPlayers(Player player1, Player player2) {
-
+        _first_player = player1;
+        _seconed_player = player2;
     }
 
     /**
@@ -94,7 +128,7 @@ public class GameLogic implements PlayableLogic {
      */
     @Override
     public boolean isFirstPlayerTurn() {
-        return false;
+        return true;
     }
 
     /**
@@ -104,7 +138,7 @@ public class GameLogic implements PlayableLogic {
      */
     @Override
     public boolean isGameFinished() {
-        return false;
+        return _valid_moves.isEmpty();
     }
 
     /**
@@ -112,7 +146,16 @@ public class GameLogic implements PlayableLogic {
      */
     @Override
     public void reset() {
-
+        _board = new Disc[BOARD_SIZE][BOARD_SIZE];
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                _board[i][j] = null;
+            }
+        }
+        _board[3][3] = new SimpleDisc(_first_player);
+        _board[4][4] = new SimpleDisc(_first_player);
+        _board[3][4] = new SimpleDisc(_seconed_player);
+        _board[4][3] = new SimpleDisc(_seconed_player);
     }
 
     /**

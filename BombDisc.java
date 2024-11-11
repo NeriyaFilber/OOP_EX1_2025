@@ -13,6 +13,10 @@ public class BombDisc implements Disc {
         _owner = player;
     }
 
+    public BombDisc(BombDisc disc){
+        this._owner = disc.get_owner();
+    }
+
     /**
      * Get the player who owns the Disc.
      *
@@ -40,6 +44,6 @@ public class BombDisc implements Disc {
      */
     @Override
     public String getType() {
-        return "💣";
+        return "BombDisc";
     }
 }
