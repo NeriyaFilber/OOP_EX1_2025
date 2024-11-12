@@ -14,7 +14,7 @@ public class UnflippableDisc implements Disc {
     }
 
     public UnflippableDisc(UnflippableDisc disc){
-        this._owner = disc.get_owner();
+        this._owner = disc.getOwner();
     }
 
     /**
@@ -23,7 +23,7 @@ public class UnflippableDisc implements Disc {
      * @return The player who is the owner of this game disc.
      */
     @Override
-    public Player get_owner() {
+    public Player getOwner() {
         return _owner;
     }
 
@@ -33,7 +33,7 @@ public class UnflippableDisc implements Disc {
      * @param player The new player who own the disk.
      */
     @Override
-    public void set_owner(Player player) {
+    public void setOwner(Player player) {
         _owner = player;
     }
 

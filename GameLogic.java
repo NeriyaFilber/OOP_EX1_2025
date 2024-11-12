@@ -43,12 +43,12 @@ public class GameLogic implements PlayableLogic {
             return null;
         }
         if (_board[position.row()][position.col()].getType() == "⭕"){
-            return new UnflippableDisc(_board[position.row()][position.col()].get_owner());
+            return new UnflippableDisc(_board[position.row()][position.col()].getOwner());
         }
         if (_board[position.row()][position.col()].getType() == "💣"){
-            return new BombDisc(_board[position.row()][position.col()].get_owner());
+            return new BombDisc(_board[position.row()][position.col()].getOwner());
         }
-        return new SimpleDisc(_board[position.row()][position.col()].get_owner());
+        return new SimpleDisc(_board[position.row()][position.col()].getOwner());
     }
 
     /**
