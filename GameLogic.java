@@ -7,16 +7,10 @@ public class GameLogic implements PlayableLogic {
     private Player _seconed_player;
     private ArrayList<Position> _valid_moves;
     private boolean _turn;
-    private Disc[][] _board;
+    private Disc[][] _board = new Disc[BOARD_SIZE][BOARD_SIZE];
 
 
     public GameLogic(){
-        _board = new Disc[BOARD_SIZE][BOARD_SIZE];
-        for (int i = 0; i < BOARD_SIZE; i++) {
-            for (int j = 0; j < BOARD_SIZE; j++) {
-                _board[i][j] = null;
-            }
-        }
     }
     /**
      * Attempt to locate a disc on the game board.
@@ -27,10 +21,13 @@ public class GameLogic implements PlayableLogic {
      */
     @Override
     public boolean locate_disc(Position a, Disc disc) {
-        if (!(_board[a.row()][a.col()] == null)){
+        if (!(_board[a.row()][a.col()] == null) ){//|| !_valid_moves.contains(a)){
             return false;
         }
         _board[a.row()][a.col()] = disc;
+        _turn = !_turn;
+        String player = isFirstPlayerTurn() ? "1" : "2";
+        System.out.println("Player " + player + " placed a " + disc.getType() + " in ("+a.row()+","+a.col()+")");
         return true;
     }
 
@@ -45,10 +42,10 @@ public class GameLogic implements PlayableLogic {
         if (_board[position.row()][position.col()] == null){
             return null;
         }
-        if (_board[position.row()][position.col()].getType() == "UnflappableDisc"){
+        if (_board[position.row()][position.col()].getType() == "⭕"){
             return new UnflippableDisc(_board[position.row()][position.col()].get_owner());
         }
-        if (_board[position.row()][position.col()].getType() == "BombDisc"){
+        if (_board[position.row()][position.col()].getType() == "💣"){
             return new BombDisc(_board[position.row()][position.col()].get_owner());
         }
         return new SimpleDisc(_board[position.row()][position.col()].get_owner());
@@ -128,7 +125,7 @@ public class GameLogic implements PlayableLogic {
      */
     @Override
     public boolean isFirstPlayerTurn() {
-        return true;
+        return _turn;
     }
 
     /**
@@ -156,6 +153,7 @@ public class GameLogic implements PlayableLogic {
         _board[4][4] = new SimpleDisc(_first_player);
         _board[3][4] = new SimpleDisc(_seconed_player);
         _board[4][3] = new SimpleDisc(_seconed_player);
+        _turn = true;
     }
 
     /**

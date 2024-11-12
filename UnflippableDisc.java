@@ -44,6 +44,6 @@ public class UnflippableDisc implements Disc {
      */
     @Override
     public String getType() {
-        return "UnflappableDisc";
+        return "⭕";
     }
 }
