@@ -3,6 +3,10 @@ import java.util.List;
 
 public class GameLogic implements PlayableLogic {
     private final int BOARD_SIZE = 8;
+    private static int[][] DIRECTIONS = {
+            {0, 1}, {0, -1}, {1, 0}, {-1, 0},
+            {1, 1}, {1, -1}, {-1, 1}, {-1, -1}
+    };
     private Player _first_player;
     private Player _seconed_player;
     private ArrayList<Position> _valid_moves;
@@ -21,11 +25,15 @@ public class GameLogic implements PlayableLogic {
      */
     @Override
     public boolean locate_disc(Position a, Disc disc) {
-        if (!(_board[a.row()][a.col()] == null) ){//|| !_valid_moves.contains(a)){
+        if (!(_board[a.row()][a.col()] == null) || !_valid_moves.contains(a)){
             return false;
         }
         _board[a.row()][a.col()] = disc;
+        for (int[] direction : DIRECTIONS){
+            countFlipsInDirection(a.row(), a.col(), direction[0], direction[1],true);
+        }
         _turn = !_turn;
+//        Move.enter_to_stack();
         String player = isFirstPlayerTurn() ? "1" : "2";
         System.out.println("Player " + player + " placed a " + disc.getType() + " in ("+a.row()+","+a.col()+")");
         return true;
@@ -69,8 +77,14 @@ public class GameLogic implements PlayableLogic {
     @Override
     public List<Position> ValidMoves() {
         _valid_moves = new ArrayList<>();
-        Position pos = new Position(5,5);
-        _valid_moves.add(pos);
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                Position a =new Position(i,j);
+                if (_board[i][j] == null && countFlips(a) !=0){
+                    _valid_moves.add(a);
+                }
+            }
+        }
         return _valid_moves;
     }
 
@@ -83,7 +97,11 @@ public class GameLogic implements PlayableLogic {
     @Override
     public int countFlips(Position a) {
 
-        return 0;
+        int totalFlips = 0;
+        for (int[] direction : DIRECTIONS){
+            totalFlips += countFlipsInDirection(a.row(), a.col(), direction[0], direction[1],false);
+        }
+        return totalFlips;
     }
 
     /**
@@ -154,6 +172,7 @@ public class GameLogic implements PlayableLogic {
         _board[3][4] = new SimpleDisc(_seconed_player);
         _board[4][3] = new SimpleDisc(_seconed_player);
         _turn = true;
+        this.ValidMoves();
     }
 
     /**
@@ -164,4 +183,66 @@ public class GameLogic implements PlayableLogic {
     public void undoLastMove() {
 
     }
+
+    private int countFlipsInDirection(int row, int col, int rowDir, int colDir, boolean flip) {
+        int flips = 0;
+        Player opponent = isFirstPlayerTurn() ? _seconed_player: _first_player;  // Opponent's piece
+        Player player = isFirstPlayerTurn() ? _first_player : _seconed_player;
+        int currentRow = row + rowDir;
+        int currentCol = col + colDir;
+        ArrayList<Disc> to_flip = new ArrayList<>();
+
+        // Traverse in the specified direction
+        while (isInBounds(currentRow, currentCol) && _board[currentRow][currentCol] !=null && _board[currentRow][currentCol].getOwner().equals(opponent)) {
+            flips++;
+            if (flip){
+                to_flip.add(_board[currentRow][currentCol]);
+            }
+            currentRow += rowDir;
+            currentCol += colDir;
+        }
+
+        // Validate the sequence to ensure it ends with the current player's piece
+        if (!isInBounds(currentRow, currentCol) ||_board[currentRow][currentCol] == null || _board[currentRow][currentCol].getOwner() != player) {
+            flips = 0;  // Reset flips if not bounded by the player's piece
+        }
+        if (flips !=0){
+            for (int i = 0; i < to_flip.size(); i++) {
+                to_flip.get(i).setOwner(player);
+            }
+        }
+        return flips;
+    }
+    /**
+     * Checks if a position is within board boundaries.
+     *
+     * @param row The row to check.
+     * @param col The column to check.
+     * @return True if the position is within bounds, false otherwise.
+     */
+    private boolean isInBounds(int row, int col) {
+        return row >= 0 && row < _board.length && col >= 0 && col < _board[0].length;
+    }
+
+    private Disc[][] copy_board(){
+        Disc[][] board = new Disc[BOARD_SIZE][BOARD_SIZE];
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                if (_board[i][j] == null){
+                    board[i][j] = null;
+                }
+                if (_board[i][j].getType() == "⭕"){
+                    board[i][j] = new UnflippableDisc(_board[i][j].getOwner());
+                }
+                if (_board[i][j].getType() == "💣"){
+                    board[i][j] = new BombDisc(_board[i][j].getOwner());
+                }
+                if (_board[i][j].getType() == "⬤"){
+                board[i][j] = new SimpleDisc(_board[i][j].getOwner());
+                }
+            }
+        }
+        return board;
+    }
 }
+

@@ -1,8 +1,7 @@
 import java.util.Objects;
 
 public class Position {
-    private int _row;
-    private int _col;
+    private int _row, _col;
 
     public Position(int row, int col) {
         _row = row;

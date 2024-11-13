@@ -291,6 +291,7 @@ public class GUI_for_chess_like_games extends JFrame {
                 if (disc != null) {
                     // Update the button's appearance based on the new piece position
                     String type = disc.getType();
+                    
                     buttons[row][col].setText(type);
                     if ((disc.getOwner().isPlayerOne())) {
                         buttons[row][col].setForeground(Color.BLUE);
