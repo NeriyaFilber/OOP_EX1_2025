@@ -28,12 +28,13 @@ public class GameLogic implements PlayableLogic {
         if (!(_board[a.row()][a.col()] == null) || !_valid_moves.contains(a)){
             return false;
         }
+
         _board[a.row()][a.col()] = disc;
         for (int[] direction : DIRECTIONS){
             countFlipsInDirection(a.row(), a.col(), direction[0], direction[1],true);
         }
         _turn = !_turn;
-//        Move.enter_to_stack();
+        Move.enter_to_stack(copy_board());
         String player = isFirstPlayerTurn() ? "1" : "2";
         System.out.println("Player " + player + " placed a " + disc.getType() + " in ("+a.row()+","+a.col()+")");
         return true;
@@ -181,7 +182,8 @@ public class GameLogic implements PlayableLogic {
      */
     @Override
     public void undoLastMove() {
-
+        _board = Move.get_last_move();
+        _turn = !_turn;
     }
 
     private int countFlipsInDirection(int row, int col, int rowDir, int colDir, boolean flip) {
@@ -231,13 +233,13 @@ public class GameLogic implements PlayableLogic {
                 if (_board[i][j] == null){
                     board[i][j] = null;
                 }
-                if (_board[i][j].getType() == "⭕"){
+                else if (_board[i][j].getType() == "⭕"){
                     board[i][j] = new UnflippableDisc(_board[i][j].getOwner());
                 }
-                if (_board[i][j].getType() == "💣"){
+                else if (_board[i][j].getType() == "💣"){
                     board[i][j] = new BombDisc(_board[i][j].getOwner());
                 }
-                if (_board[i][j].getType() == "⬤"){
+                else if (_board[i][j].getType() == "⬤"){
                 board[i][j] = new SimpleDisc(_board[i][j].getOwner());
                 }
             }

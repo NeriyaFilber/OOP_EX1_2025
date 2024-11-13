@@ -1,4 +1,3 @@
-import java.util.ArrayList;
 import java.util.Stack;
 
 public class Move {
@@ -10,6 +9,9 @@ public class Move {
 
     public static void set_moves(Stack<Disc[][]> _moves) {
         Move._moves = _moves;
+    }
+    public static Disc[][] get_last_move(){
+        return _moves.pop();
     }
 
     //TODO create method to make the move (place specific disc at specific place). The two methods below.
