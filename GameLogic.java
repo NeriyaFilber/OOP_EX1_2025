@@ -3,7 +3,7 @@ import java.util.List;
 
 public class GameLogic implements PlayableLogic {
     private final int BOARD_SIZE = 8;
-    private static int[][] DIRECTIONS = {
+    private static final int[][] DIRECTIONS = {
             {0, 1}, {0, -1}, {1, 0}, {-1, 0},
             {1, 1}, {1, -1}, {-1, 1}, {-1, -1}
     };
@@ -12,10 +12,12 @@ public class GameLogic implements PlayableLogic {
     private ArrayList<Position> _valid_moves;
     private boolean _turn;
     private Disc[][] _board = new Disc[BOARD_SIZE][BOARD_SIZE];
+    private Move _moves = new Move();
 
 
-    public GameLogic(){
+    public GameLogic() {
     }
+
     /**
      * Attempt to locate a disc on the game board.
      *
@@ -25,18 +27,18 @@ public class GameLogic implements PlayableLogic {
      */
     @Override
     public boolean locate_disc(Position a, Disc disc) {
-        if (!(_board[a.row()][a.col()] == null) || !_valid_moves.contains(a)){
+        if (!(_board[a.row()][a.col()] == null) || !_valid_moves.contains(a)) {
             return false;
         }
-
+        _moves.enter_to_stack(copy_board());
         _board[a.row()][a.col()] = disc;
-        for (int[] direction : DIRECTIONS){
-            countFlipsInDirection(a.row(), a.col(), direction[0], direction[1],true);
+        for (int[] direction : DIRECTIONS) {
+            countFlipsInDirection(a.row(), a.col(), direction[0], direction[1], true);
         }
         _turn = !_turn;
-        Move.enter_to_stack(copy_board());
+
         String player = isFirstPlayerTurn() ? "1" : "2";
-        System.out.println("Player " + player + " placed a " + disc.getType() + " in ("+a.row()+","+a.col()+")");
+        System.out.printf("Player %s placed a %s in (%d, %d)\n", player, disc.getType(), a.row(), a.col());
         return true;
     }
 
@@ -48,13 +50,13 @@ public class GameLogic implements PlayableLogic {
      */
     @Override
     public Disc getDiscAtPosition(Position position) {
-        if (_board[position.row()][position.col()] == null){
+        if (_board[position.row()][position.col()] == null) {
             return null;
         }
-        if (_board[position.row()][position.col()].getType() == "⭕"){
+        if (_board[position.row()][position.col()].getType() == "⭕") {
             return new UnflippableDisc(_board[position.row()][position.col()].getOwner());
         }
-        if (_board[position.row()][position.col()].getType() == "💣"){
+        if (_board[position.row()][position.col()].getType() == "💣") {
             return new BombDisc(_board[position.row()][position.col()].getOwner());
         }
         return new SimpleDisc(_board[position.row()][position.col()].getOwner());
@@ -80,8 +82,8 @@ public class GameLogic implements PlayableLogic {
         _valid_moves = new ArrayList<>();
         for (int i = 0; i < BOARD_SIZE; i++) {
             for (int j = 0; j < BOARD_SIZE; j++) {
-                Position a =new Position(i,j);
-                if (_board[i][j] == null && countFlips(a) !=0){
+                Position a = new Position(i, j);
+                if (_board[i][j] == null && countFlips(a) != 0) {
                     _valid_moves.add(a);
                 }
             }
@@ -99,8 +101,8 @@ public class GameLogic implements PlayableLogic {
     public int countFlips(Position a) {
 
         int totalFlips = 0;
-        for (int[] direction : DIRECTIONS){
-            totalFlips += countFlipsInDirection(a.row(), a.col(), direction[0], direction[1],false);
+        for (int[] direction : DIRECTIONS) {
+            totalFlips += countFlipsInDirection(a.row(), a.col(), direction[0], direction[1], false);
         }
         return totalFlips;
     }
@@ -182,39 +184,49 @@ public class GameLogic implements PlayableLogic {
      */
     @Override
     public void undoLastMove() {
-        _board = Move.get_last_move();
+        _board = _moves.get_last_move();
         _turn = !_turn;
     }
 
     private int countFlipsInDirection(int row, int col, int rowDir, int colDir, boolean flip) {
-        int flips = 0;
-        Player opponent = isFirstPlayerTurn() ? _seconed_player: _first_player;  // Opponent's piece
+        int count_flips = 0;
+        Player opponent = isFirstPlayerTurn() ? _seconed_player : _first_player;  // Opponent's piece
         Player player = isFirstPlayerTurn() ? _first_player : _seconed_player;
         int currentRow = row + rowDir;
         int currentCol = col + colDir;
         ArrayList<Disc> to_flip = new ArrayList<>();
+//        ArrayList<Position> bomb_disc_pos = new ArrayList<>();
 
         // Traverse in the specified direction
-        while (isInBounds(currentRow, currentCol) && _board[currentRow][currentCol] !=null && _board[currentRow][currentCol].getOwner().equals(opponent)) {
-            flips++;
-            if (flip){
+        while (isInBounds(currentRow, currentCol) &&
+                _board[currentRow][currentCol] != null &&
+                _board[currentRow][currentCol].getOwner().equals(opponent)) {
+            if (_board[currentRow][currentCol].getType() != "⭕") {
+                count_flips++;
                 to_flip.add(_board[currentRow][currentCol]);
             }
+
             currentRow += rowDir;
             currentCol += colDir;
         }
-
         // Validate the sequence to ensure it ends with the current player's piece
-        if (!isInBounds(currentRow, currentCol) ||_board[currentRow][currentCol] == null || _board[currentRow][currentCol].getOwner() != player) {
-            flips = 0;  // Reset flips if not bounded by the player's piece
+        if (!isInBounds(currentRow, currentCol) ||
+                _board[currentRow][currentCol] == null ||
+                _board[currentRow][currentCol].getOwner() != player) {
+            count_flips = 0;  // Reset flips if not bounded by the player's piece
         }
-        if (flips !=0){
+        if (count_flips != 0 && flip) {
             for (int i = 0; i < to_flip.size(); i++) {
+                if(to_flip.get(i).getType() == "💣"){
+                    Position a = find_bomb(to_flip.get(i));
+                    count_flips += flip_bomb(a.row(),a.col(),to_flip); // TODO find why the bomb flip isn't right
+                }
                 to_flip.get(i).setOwner(player);
             }
         }
-        return flips;
+        return count_flips;
     }
+
     /**
      * Checks if a position is within board boundaries.
      *
@@ -226,25 +238,62 @@ public class GameLogic implements PlayableLogic {
         return row >= 0 && row < _board.length && col >= 0 && col < _board[0].length;
     }
 
-    private Disc[][] copy_board(){
+    private Disc[][] copy_board() {
         Disc[][] board = new Disc[BOARD_SIZE][BOARD_SIZE];
         for (int i = 0; i < BOARD_SIZE; i++) {
             for (int j = 0; j < BOARD_SIZE; j++) {
-                if (_board[i][j] == null){
+                if (_board[i][j] == null) {
                     board[i][j] = null;
-                }
-                else if (_board[i][j].getType() == "⭕"){
+                } else if (_board[i][j].getType() == "⭕") {
                     board[i][j] = new UnflippableDisc(_board[i][j].getOwner());
-                }
-                else if (_board[i][j].getType() == "💣"){
+                } else if (_board[i][j].getType() == "💣") {
                     board[i][j] = new BombDisc(_board[i][j].getOwner());
-                }
-                else if (_board[i][j].getType() == "⬤"){
-                board[i][j] = new SimpleDisc(_board[i][j].getOwner());
+                } else if (_board[i][j].getType() == "⬤") {
+                    board[i][j] = new SimpleDisc(_board[i][j].getOwner());
                 }
             }
         }
         return board;
+    }
+
+    private void print_flip(Disc disc) {
+
+    }
+
+
+    private int flip_bomb(int row, int col, ArrayList<Disc> flipped_disc) {
+        int flip = 0;
+        Player player = isFirstPlayerTurn() ? _first_player : _seconed_player;
+        for (int[] direction : DIRECTIONS) {
+            int currentRow = row + direction[0];
+            int currentCol = col + direction[1];
+            if (_board[currentRow][currentCol] != null
+                    && _board[currentRow][currentCol].getOwner() != player
+                    && _board[currentRow][currentCol].getType() != "⭕"
+                    && !flipped_disc.contains(_board[currentRow][currentCol])){
+                if (_board[currentRow][currentCol].getType() == "💣"){
+                    flipped_disc.add(_board[currentRow][currentCol]);
+                    flip += flip_bomb(currentRow,currentCol,flipped_disc);
+                }
+                else {
+                    flipped_disc.add(_board[currentRow][currentCol]);
+                    flip++;
+                }
+            }
+        }
+        return flip;
+    }
+
+    private Position find_bomb(Disc bomb_disc){
+        Position pos = null;
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                if (_board[i][j] == bomb_disc){
+                    pos = new Position(i,j);
+                }
+            }
+        }
+        return pos;
     }
 }
 
