@@ -3,6 +3,7 @@ public class GreedyAI extends AIPlayer {
         super(isPlayerOne);
     }
 
+
     /**
      * @param gameStatus
      * @return
