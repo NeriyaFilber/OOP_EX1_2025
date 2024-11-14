@@ -105,7 +105,6 @@ public class GameLogic implements PlayableLogic {
      */
     @Override
     public int countFlips(Position a) {
-
         int totalFlips = 0;
         for (int[] direction : DIRECTIONS) {
             totalFlips += countFlipsInDirection(a.row(), a.col(), direction[0], direction[1], false);
@@ -162,7 +161,11 @@ public class GameLogic implements PlayableLogic {
      */
     @Override
     public boolean isGameFinished() {
-        if(!_valid_moves.isEmpty()){return false;}
+        _valid_moves = (ArrayList<Position>) ValidMoves();
+        if(!_valid_moves.isEmpty()){
+            _valid_moves = null;
+            return false;
+        }
         int player_1_discs = 0;
         int player_2_discs = 0;
         for (int i = 0; i < BOARD_SIZE; i++) {
@@ -180,7 +183,7 @@ public class GameLogic implements PlayableLogic {
         int loser_disc = Math.min(player_1_discs,player_2_discs);
         String winner = player_1_discs >= player_2_discs ? "1" : "2";
         String loser = player_1_discs < player_2_discs ? "1" : "2";
-        System.out.printf("Player %s wins with %d discs! Player %s had %d discs.",winner,win_disc,loser,loser_disc);
+        System.out.printf("Player %s wins with %d discs! Player %s had %d discs.\n\n",winner,win_disc,loser,loser_disc);
         if(winner.equals("1")){
             _first_player.addWin();
         }
@@ -208,6 +211,7 @@ public class GameLogic implements PlayableLogic {
         _turn = true;
         _first_player.reset_bombs_and_unflippedable();
         _seconed_player.reset_bombs_and_unflippedable();
+        _moves = new Move();
         this.ValidMoves();
     }
 
