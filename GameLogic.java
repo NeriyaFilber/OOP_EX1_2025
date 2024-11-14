@@ -215,13 +215,15 @@ public class GameLogic implements PlayableLogic {
                 _board[currentRow][currentCol].getOwner() != player) {
             count_flips = 0;  // Reset flips if not bounded by the player's piece
         }
-        if (count_flips != 0 && flip) {
+        if (count_flips != 0) {
             for (int i = 0; i < to_flip.size(); i++) {
                 if(to_flip.get(i).getType() == "💣"){
                     Position a = find_bomb(to_flip.get(i));
                     count_flips += flip_bomb(a.row(),a.col(),to_flip); // TODO find why the bomb flip isn't right
                 }
-                to_flip.get(i).setOwner(player);
+                if (flip){
+                    to_flip.get(i).setOwner(player);
+                }
             }
         }
         return count_flips;
@@ -273,7 +275,7 @@ public class GameLogic implements PlayableLogic {
                     && !flipped_disc.contains(_board[currentRow][currentCol])){
                 if (_board[currentRow][currentCol].getType() == "💣"){
                     flipped_disc.add(_board[currentRow][currentCol]);
-                    flip += flip_bomb(currentRow,currentCol,flipped_disc);
+                    flip += flip_bomb(currentRow,currentCol,flipped_disc) +1;
                 }
                 else {
                     flipped_disc.add(_board[currentRow][currentCol]);
