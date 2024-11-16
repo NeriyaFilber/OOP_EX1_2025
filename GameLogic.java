@@ -44,9 +44,7 @@ public class GameLogic implements PlayableLogic {
         _moves.enter_to_stack(copy_board());
         _board[a.row()][a.col()] = disc;
         System.out.printf("Player %s placed a %s in (%d, %d)\n", isFirstPlayerTurn() ? "1" : "2", disc.getType(), a.row(), a.col());
-        for (int[] direction : DIRECTIONS) {
-            countFlipsInDirection(a.row(), a.col(), direction[0], direction[1], true);
-        }
+        countFlipsInDirection(a.row(), a.col(), true);
         _turn = !_turn;
         System.out.println();
         return true;
@@ -109,11 +107,7 @@ public class GameLogic implements PlayableLogic {
      */
     @Override
     public int countFlips(Position a) {
-        int totalFlips = 0;
-        for (int[] direction : DIRECTIONS) {
-            totalFlips += countFlipsInDirection(a.row(), a.col(), direction[0], direction[1], false);
-        }
-        return totalFlips;
+          return countFlipsInDirection(a.row(), a.col(), false);
     }
 
     /**
@@ -241,51 +235,64 @@ public class GameLogic implements PlayableLogic {
      *
      * @param row      The starting row of the position.
      * @param col      The starting column of the position.
-     * @param rowDir   The direction to move in rows.
-     * @param colDir   The direction to move in columns.
+
      * @param flip     Whether to flip the discs during this process.
      * @return The number of discs that will be flipped in this direction.
      */
-    private int countFlipsInDirection(int row, int col, int rowDir, int colDir, boolean flip) {
-        int count_flips = 0;
-        Player opponent = isFirstPlayerTurn() ? _seconed_player : _first_player;
-        Player player = isFirstPlayerTurn() ? _first_player : _seconed_player;
-        int currentRow = row + rowDir;
-        int currentCol = col + colDir;
+    private int countFlipsInDirection(int row, int col,boolean flip) {
         ArrayList<Disc> to_flip = new ArrayList<>();
+        for (int[] direction : DIRECTIONS) {
+            Player opponent = isFirstPlayerTurn() ? _seconed_player : _first_player;
+            Player player = isFirstPlayerTurn() ? _first_player : _seconed_player;
+            int rowDir = direction[0];
+            int colDir = direction[1];
+            int currentRow = row + rowDir;
+            int currentCol = col + colDir;
+            ArrayList<Disc> flip_in_direction = new ArrayList<>();
 
-        // Traverse in the specified direction
-        while (isInBounds(currentRow, currentCol) &&
-                _board[currentRow][currentCol] != null &&
-                _board[currentRow][currentCol].getOwner().equals(opponent)) {
-            if (!Objects.equals(_board[currentRow][currentCol].getType(), "⭕")) {
-                count_flips++;
-                to_flip.add(_board[currentRow][currentCol]);
+            // Traverse in the specified direction
+            while (isInBounds(currentRow, currentCol) &&
+                    _board[currentRow][currentCol] != null &&
+                    _board[currentRow][currentCol].getOwner().equals(opponent)) {
+                if (!Objects.equals(_board[currentRow][currentCol].getType(), "⭕")) {
+
+                    flip_in_direction.add(_board[currentRow][currentCol]);
+                }
+
+                currentRow += rowDir;
+                currentCol += colDir;
             }
 
-            currentRow += rowDir;
-            currentCol += colDir;
-        }
+            // Validate the sequence to ensure it ends with the current player's piece
+            if (!isInBounds(currentRow, currentCol) ||
+                    _board[currentRow][currentCol] == null ||
+                    _board[currentRow][currentCol].getOwner() != player) {
+                flip_in_direction.clear();  // Reset flips if not bounded by the player's piece
+            }
+            if (!flip_in_direction.isEmpty()) {
+                for (int i = 0; i < flip_in_direction.size(); i++) {
+                    Position a = find_disc(flip_in_direction.get(i));
+                    if (Objects.equals(flip_in_direction.get(i).getType(), "💣")) {
+                        flip_bomb(a.row(), a.col(), flip_in_direction);
+                    }
 
-        // Validate the sequence to ensure it ends with the current player's piece
-        if (!isInBounds(currentRow, currentCol) ||
-                _board[currentRow][currentCol] == null ||
-                _board[currentRow][currentCol].getOwner() != player) {
-            count_flips = 0;  // Reset flips if not bounded by the player's piece
-        }
-        if (count_flips != 0) {
-            for (int i = 0; i < to_flip.size(); i++) {
-                Position a = find_disc(to_flip.get(i));
-                if(Objects.equals(to_flip.get(i).getType(), "💣")){
-                    count_flips += flip_bomb(a.row(),a.col(),to_flip);
+
                 }
-                if (flip){
-                    to_flip.get(i).setOwner(player);
-                    System.out.printf("Player %s flipped the %s in (%d, %d) \n", isFirstPlayerTurn()?"1":"2",to_flip.get(i).getType(),a.row(),a.col());
+            }
+            if (flip && !flip_in_direction.isEmpty()){
+                for (int i = 0; i < flip_in_direction.size(); i++) {
+                    Position a = find_disc(flip_in_direction.get(i));
+                        flip_in_direction.get(i).setOwner(player);
+                        System.out.printf("Player %s flipped the %s in (%d, %d) \n", isFirstPlayerTurn() ? "1" : "2", flip_in_direction.get(i).getType(), a.row(), a.col());
+                }
+            }
+            for (Disc disc : flip_in_direction) {
+                if (!to_flip.contains(disc)) {
+                    to_flip.add(disc);
                 }
             }
         }
-        return count_flips;
+        return to_flip.size();
     }
 
     /**
