@@ -221,6 +221,10 @@ public class GameLogic implements PlayableLogic {
         try {
             Disc[][] last_move = _moves.get_last_move();
             print_undo(last_move);
+            Player player = isFirstPlayerTurn() ? _seconed_player : _first_player;
+            Position new_piece = find_new_piece(last_move);
+            if(Objects.equals(_board[new_piece.row()][new_piece.col()].getType(), "💣")){player.number_of_bombs++;}
+            if(Objects.equals(_board[new_piece.row()][new_piece.col()].getType(), "⭕")){player.number_of_unflippedable++;}
             _board = last_move;
             _turn = !_turn;
         }
@@ -280,10 +284,10 @@ public class GameLogic implements PlayableLogic {
                 }
             }
             if (flip && !flip_in_direction.isEmpty()){
-                for (int i = 0; i < flip_in_direction.size(); i++) {
-                    Position a = find_disc(flip_in_direction.get(i));
-                        flip_in_direction.get(i).setOwner(player);
-                        System.out.printf("Player %s flipped the %s in (%d, %d) \n", isFirstPlayerTurn() ? "1" : "2", flip_in_direction.get(i).getType(), a.row(), a.col());
+                for (Disc disc : flip_in_direction) {
+                    Position a = find_disc(disc);
+                    disc.setOwner(player);
+                    System.out.printf("Player %s flipped the %s in (%d, %d) \n", isFirstPlayerTurn() ? "1" : "2", disc.getType(), a.row(), a.col());
                 }
             }
             for (Disc disc : flip_in_direction) {
