@@ -41,7 +41,7 @@ public class GameLogic implements PlayableLogic {
         }
         if (Objects.equals(disc.getType(), "⭕")){player.reduce_unflippedable();}
         if (Objects.equals(disc.getType(), "💣")){player.reduce_bomb();}
-        _moves.enter_to_stack(copy_board());
+        _moves.enter_to_stack(copyBoard(_board));
         _board[a.row()][a.col()] = disc;
         System.out.printf("Player %s placed a %s in (%d, %d)\n", isFirstPlayerTurn() ? "1" : "2", disc.getType(), a.row(), a.col());
         countFlipsInDirection(a.row(), a.col(), true);
@@ -209,7 +209,7 @@ public class GameLogic implements PlayableLogic {
         _turn = true;
         _first_player.reset_bombs_and_unflippedable();
         _seconed_player.reset_bombs_and_unflippedable();
-        _moves = new Move();
+        _moves.reset_stack();
     }
 
     /**
@@ -222,7 +222,7 @@ public class GameLogic implements PlayableLogic {
             Disc[][] last_move = _moves.get_last_move();
             print_undo(last_move);
             Player player = isFirstPlayerTurn() ? _seconed_player : _first_player;
-            Position new_piece = find_new_piece(last_move);
+            Position new_piece = findNewPiece(last_move);
             if(Objects.equals(_board[new_piece.row()][new_piece.col()].getType(), "💣")){player.number_of_bombs++;}
             if(Objects.equals(_board[new_piece.row()][new_piece.col()].getType(), "⭕")){player.number_of_unflippedable++;}
             _board = last_move;
@@ -275,9 +275,9 @@ public class GameLogic implements PlayableLogic {
             }
             if (!flip_in_direction.isEmpty()) {
                 for (int i = 0; i < flip_in_direction.size(); i++) {
-                    Position a = find_disc(flip_in_direction.get(i));
+                    Position a = findDisc(flip_in_direction.get(i));
                     if (Objects.equals(flip_in_direction.get(i).getType(), "💣")) {
-                        flip_bomb(a.row(), a.col(), flip_in_direction);
+                        flipBomb(a.row(), a.col(), flip_in_direction);
                     }
 
 
@@ -285,7 +285,7 @@ public class GameLogic implements PlayableLogic {
             }
             if (flip && !flip_in_direction.isEmpty()){
                 for (Disc disc : flip_in_direction) {
-                    Position a = find_disc(disc);
+                    Position a = findDisc(disc);
                     disc.setOwner(player);
                     System.out.printf("Player %s flipped the %s in (%d, %d) \n", isFirstPlayerTurn() ? "1" : "2", disc.getType(), a.row(), a.col());
                 }
@@ -315,22 +315,22 @@ public class GameLogic implements PlayableLogic {
      *
      * @return A deep copy of the game board as a 2D array of discs.
      */
-    private Disc[][] copy_board() {
-        Disc[][] board = new Disc[BOARD_SIZE][BOARD_SIZE];
+    public Disc[][] copyBoard(Disc[][] board) {
+        Disc[][] new_board = new Disc[BOARD_SIZE][BOARD_SIZE];
         for (int i = 0; i < BOARD_SIZE; i++) {
             for (int j = 0; j < BOARD_SIZE; j++) {
-                if (_board[i][j] == null) {
-                    board[i][j] = null;
-                } else if (Objects.equals(_board[i][j].getType(), "⭕")) {
-                    board[i][j] = new UnflippableDisc(_board[i][j].getOwner());
-                } else if (Objects.equals(_board[i][j].getType(), "💣")) {
-                    board[i][j] = new BombDisc(_board[i][j].getOwner());
-                } else if (Objects.equals(_board[i][j].getType(), "⬤")) {
-                    board[i][j] = new SimpleDisc(_board[i][j].getOwner());
+                if (board[i][j] == null) {
+                    new_board[i][j] = null;
+                } else if (Objects.equals(board[i][j].getType(), "⭕")) {
+                    new_board[i][j] = new UnflippableDisc(board[i][j].getOwner());
+                } else if (Objects.equals(board[i][j].getType(), "💣")) {
+                    new_board[i][j] = new BombDisc(board[i][j].getOwner());
+                } else if (Objects.equals(board[i][j].getType(), "⬤")) {
+                    new_board[i][j] = new SimpleDisc(board[i][j].getOwner());
                 }
             }
         }
-        return board;
+        return new_board;
     }
 
 
@@ -342,7 +342,7 @@ public class GameLogic implements PlayableLogic {
      * @param flipped_disc  The list of discs already flipped to avoid duplication.
      * @return The number of additional discs flipped due to the bomb effect.
      */
-    private int flip_bomb(int row, int col, ArrayList<Disc> flipped_disc) {
+    private int flipBomb(int row, int col, ArrayList<Disc> flipped_disc) {
         int flip = 0;
         Player player = isFirstPlayerTurn() ? _first_player : _seconed_player;
         for (int[] direction : DIRECTIONS) {
@@ -355,7 +355,7 @@ public class GameLogic implements PlayableLogic {
                     && !flipped_disc.contains(_board[currentRow][currentCol])){
                 if (Objects.equals(_board[currentRow][currentCol].getType(), "💣")){
                     flipped_disc.add(_board[currentRow][currentCol]);
-                    flip += flip_bomb(currentRow,currentCol,flipped_disc) +1;
+                    flip += flipBomb(currentRow,currentCol,flipped_disc) +1;
                 }
                 else {
                     flipped_disc.add(_board[currentRow][currentCol]);
@@ -372,7 +372,7 @@ public class GameLogic implements PlayableLogic {
      * @param disc The disc to locate.
      * @return The position of the disc, or null if it is not found.
      */
-    private Position find_disc(Disc disc){
+    private Position findDisc(Disc disc){
         Position pos = null;
         for (int i = 0; i < BOARD_SIZE; i++) {
             for (int j = 0; j < BOARD_SIZE; j++) {
@@ -392,9 +392,9 @@ public class GameLogic implements PlayableLogic {
      */
     private void print_undo(Disc[][] prev_board){
         System.out.println("Undoing last move:");
-        Position a = find_new_piece(prev_board);
+        Position a = findNewPiece(prev_board);
         System.out.printf("\tUndo: removing %s from (%d, %d)\n", _board[a.row()][a.col()].getType(), a.row(),a.col());
-        ArrayList<Position> list_of_flips = find_flip_pieces(prev_board);
+        ArrayList<Position> list_of_flips = findFlipPieces(prev_board);
         for (Position pos : list_of_flips) {
             System.out.printf("\tUndo: flipping back %s in (%d, %d)\n", _board[pos.row()][pos.col()].getType(), pos.row(), pos.col());
         }
@@ -408,7 +408,7 @@ public class GameLogic implements PlayableLogic {
      * @return The position of the newly placed piece.
      */
 
-    private Position find_new_piece(Disc[][] prev_board){
+    private Position findNewPiece(Disc[][] prev_board){
         Position a =null;
         for (int i = 0; i < BOARD_SIZE; i++) {
             for (int j = 0; j < BOARD_SIZE; j++) {
@@ -427,7 +427,7 @@ public class GameLogic implements PlayableLogic {
      * @param prev_board The state of the board before the last move.
      * @return A list of positions where pieces were flipped.
      */
-    private ArrayList<Position> find_flip_pieces(Disc[][] prev_board){
+    private ArrayList<Position> findFlipPieces(Disc[][] prev_board){
         ArrayList<Position> ans = new ArrayList<>();
         for (int i = 0; i < BOARD_SIZE; i++) {
             for (int j = 0; j < BOARD_SIZE; j++) {
