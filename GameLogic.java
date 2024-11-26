@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Stack;
 
 public class GameLogic implements PlayableLogic {
     private final int BOARD_SIZE = 8;
@@ -13,7 +14,8 @@ public class GameLogic implements PlayableLogic {
     private List<Position> _valid_moves;
     private boolean _turn;
     private Disc[][] _board = new Disc[BOARD_SIZE][BOARD_SIZE];
-    private Move _moves = new Move();
+    private Stack<Disc[][]> _moves = new Stack<>();
+
 
 
     /**
@@ -41,7 +43,7 @@ public class GameLogic implements PlayableLogic {
         }
         if (Objects.equals(disc.getType(), "⭕")){player.reduce_unflippedable();}
         if (Objects.equals(disc.getType(), "💣")){player.reduce_bomb();}
-        _moves.enter_to_stack(copyBoard(_board));
+        _moves.push(copyBoard(_board));
         _board[a.row()][a.col()] = disc;
         System.out.printf("Player %s placed a %s in (%d, %d)\n", isFirstPlayerTurn() ? "1" : "2", disc.getType(), a.row(), a.col());
         countFlipsInDirection(a.row(), a.col(), true);
@@ -209,7 +211,7 @@ public class GameLogic implements PlayableLogic {
         _turn = true;
         _first_player.reset_bombs_and_unflippedable();
         _seconed_player.reset_bombs_and_unflippedable();
-        _moves.reset_stack();
+        _moves.clear();
     }
 
     /**
@@ -220,7 +222,7 @@ public class GameLogic implements PlayableLogic {
     public void undoLastMove() {
         try {
             if (!(_first_player instanceof AIPlayer) && !(_seconed_player instanceof AIPlayer)) {
-                Disc[][] last_move = _moves.get_last_move();
+                Disc[][] last_move = _moves.pop();
                 print_undo(last_move);
                 Player player = isFirstPlayerTurn() ? _seconed_player : _first_player;
                 Position new_piece = findNewPiece(last_move);
