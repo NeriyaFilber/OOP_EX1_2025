@@ -10,7 +10,7 @@ public class GameLogic implements PlayableLogic {
     };
     private Player _first_player;
     private Player _seconed_player;
-    private ArrayList<Position> _valid_moves;
+    private List<Position> _valid_moves;
     private boolean _turn;
     private Disc[][] _board = new Disc[BOARD_SIZE][BOARD_SIZE];
     private Move _moves = new Move();
@@ -36,7 +36,7 @@ public class GameLogic implements PlayableLogic {
         }
         Player player = isFirstPlayerTurn()? _first_player:_seconed_player;
         if ((Objects.equals(disc.getType(), "⭕") && player.getNumber_of_unflippedable() <= 0) //handle bomb and unflappable disc
-            || (Objects.equals(disc.getType(), "💣") && player.getNumber_of_bombs() <= 0)){
+                || (Objects.equals(disc.getType(), "💣") && player.getNumber_of_bombs() <= 0)){
             return false;
         }
         if (Objects.equals(disc.getType(), "⭕")){player.reduce_unflippedable();}
@@ -107,7 +107,7 @@ public class GameLogic implements PlayableLogic {
      */
     @Override
     public int countFlips(Position a) {
-          return countFlipsInDirection(a.row(), a.col(), false);
+        return countFlipsInDirection(a.row(), a.col(), false);
     }
 
     /**
@@ -219,14 +219,20 @@ public class GameLogic implements PlayableLogic {
     @Override
     public void undoLastMove() {
         try {
-            Disc[][] last_move = _moves.get_last_move();
-            print_undo(last_move);
-            Player player = isFirstPlayerTurn() ? _seconed_player : _first_player;
-            Position new_piece = findNewPiece(last_move);
-            if(Objects.equals(_board[new_piece.row()][new_piece.col()].getType(), "💣")){player.number_of_bombs++;}
-            if(Objects.equals(_board[new_piece.row()][new_piece.col()].getType(), "⭕")){player.number_of_unflippedable++;}
-            _board = last_move;
-            _turn = !_turn;
+            if (!(_first_player instanceof AIPlayer) && !(_seconed_player instanceof AIPlayer)) {
+                Disc[][] last_move = _moves.get_last_move();
+                print_undo(last_move);
+                Player player = isFirstPlayerTurn() ? _seconed_player : _first_player;
+                Position new_piece = findNewPiece(last_move);
+                if (Objects.equals(_board[new_piece.row()][new_piece.col()].getType(), "💣")) {
+                    player.number_of_bombs++;
+                }
+                if (Objects.equals(_board[new_piece.row()][new_piece.col()].getType(), "⭕")) {
+                    player.number_of_unflippedable++;
+                }
+                _board = last_move;
+                _turn = !_turn;
+            }
         }
         catch (Exception e){
             System.out.println("Undoing last move:\n\tNo previous move available to undo.\n");
@@ -442,4 +448,3 @@ public class GameLogic implements PlayableLogic {
         return ans;
     }
 }
-
