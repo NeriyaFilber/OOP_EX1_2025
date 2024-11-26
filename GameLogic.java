@@ -159,7 +159,7 @@ public class GameLogic implements PlayableLogic {
      */
     @Override
     public boolean isGameFinished() {
-        _valid_moves = (ArrayList<Position>) ValidMoves();
+        _valid_moves = ValidMoves();
         if(!_valid_moves.isEmpty()){
             _valid_moves = null;
             return false;

@@ -21,6 +21,7 @@ public class Move {
     public Move() {
     }
 
+
     public void enter_to_stack(Disc[][] board) {
         _moves.push(board);
     }
@@ -31,5 +32,9 @@ public class Move {
 
     public Disc[][] get_last_move() {
         return _moves.pop();
+    }
+
+    public void reset_stack() {
+        _moves.clear();
     }
 }
