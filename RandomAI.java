@@ -45,7 +45,6 @@ private Position getRandomPosition(List<Position> possibleMoves) {
         // Select a random disc
         Disc randomDisc = getRandomDisc();
 
-        // Create and return the move
         return new Move(randomPosition, randomDisc);
     }
 
