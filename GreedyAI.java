@@ -5,34 +5,39 @@ public class GreedyAI extends AIPlayer {
     public GreedyAI(boolean isPlayerOne) {
         super(isPlayerOne);
     }
+    //Comparator
+   public class PositionCompare implements Comparator<Position> {
+        private final PlayableLogic gameStatus;
 
-    @Override
+         public PositionCompare(PlayableLogic gameStatus) {
+            this.gameStatus = gameStatus;
+        }
+       // Number of flips for each position
+       public int compare(Position pos1, Position pos2) {
+            int flips1 =gameStatus.countFlips(pos1);
+            int flips2 =gameStatus.countFlips(pos2);
+           // Primary comparison: by number of flips (higher is better)
+            if (flips1 != flips2) {
+                return Integer.compare(flips2, flips1);
+            }
+           // Secondary comparison: by the highest column (col)
+           if (pos1.col() != pos2.col()) {
+                return Integer.compare(pos2.col(), pos1.col());
+            }
+           // Tertiary comparison: by the highest row
+                return Integer.compare(pos2.row(), pos1.row());
+
+         }
+        }
+
+            @Override
     public Move makeMove(PlayableLogic gameStatus) {
         List<Position> validMoves = gameStatus.ValidMoves();
         if (validMoves.isEmpty()) {
             return null; // No legal move to make
         }
-
-        // Comparator for comparing positions
-        Comparator<Position> positionComparator = (pos1, pos2) -> {
-            int flips1 = gameStatus.countFlips(pos1); // Number of flips for position 1
-            int flips2 = gameStatus.countFlips(pos2); // Number of flips for position 2
-
-            // Primary comparison: by number of flips (higher comes first)
-            if (flips1 != flips2) {
-                return Integer.compare(flips2, flips1); // reverse order
-            }
-
-            // Secondary comparison: by the highest column (right)
-            if (pos1.col() != pos2.col()) {
-                return Integer.compare(pos2.col(), pos1.col());
-            }
-
-            // Tertiary comparison: by the highest row (down)
-            return Integer.compare(pos2.row(), pos1.row());
-        };
-
-        validMoves.sort(positionComparator);
+        // Sorting the moves using a comparator
+        validMoves.sort(new PositionCompare(gameStatus));
 
         // Choose the best move (the first in the list)
         Position bestMove = validMoves.get(0);
