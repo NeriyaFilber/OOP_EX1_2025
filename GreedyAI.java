@@ -5,40 +5,38 @@ public class GreedyAI extends AIPlayer {
         super(isPlayerOne);
     }
 
-
-    /**
-     * @param gameStatus
-     * @return
-     */
     @Override
     public Move makeMove(PlayableLogic gameStatus) {
         List<Position> validMoves = gameStatus.ValidMoves();
         if (validMoves.isEmpty()) {
-            return null; // אין מהלך חוקי לביצוע
+            return null; // No legal move available
         }
 
-        Position bestMove = null;
-        int maxFlips = -1;
+        // Sorting the moves using a comparator
+        validMoves.sort((pos1, pos2) -> {
+            int flips1 = gameStatus.countFlips(pos1); // Number of flips for position 1
+            int flips2 = gameStatus.countFlips(pos2); // Number of flips for position 2
 
-        // בדיקה של כל מהלך חוקי
-        for (Position move : validMoves) {
-            int flips = gameStatus.countFlips(move);
-            if (flips > maxFlips) {
-                maxFlips = flips;
-                bestMove = move;
-            } else if (flips == maxFlips) {
-                // השוואה על פי סדר קדימויות: ימני ביותר ואז תחתון ביותר
-                if (move.col() > bestMove.col() ||
-                        (move.col() == bestMove.col() && move.row() > bestMove.row())) {
-                    bestMove = move;
-                }
+            // Primary comparison: based on the number of flips
+            if (flips1 != flips2) {
+                return Integer.compare(flips2, flips1); // Higher flips come first
             }
-        }
 
-        // יצירת דיסקית פשוטה
+            // Secondary comparison:Right based on the column (col)
+            if (pos1.col() != pos2.col()) {
+                return Integer.compare(pos2.col(), pos1.col());
+            }
+
+            // Tertiary comparison:Down based on the row
+            return Integer.compare(pos2.row(), pos1.row());
+        });
+
+        // Choosing the best move
+        Position bestMove = validMoves.get(0);
+
+        // Creating a simple disc
         Disc simpleDisc = new SimpleDisc(this);
 
         return new Move(bestMove, simpleDisc);
-
     }
 }

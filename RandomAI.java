@@ -13,39 +13,39 @@ private Position getRandomPosition(List<Position> possibleMoves) {
     private Disc getRandomDisc() {
         Random random = new Random();
 
-        // רשימת אפשרויות הדסקיות שזמינות
+        // List of available disc options
         List<Disc> availableDiscs = new ArrayList<>();
 
-        // הוספת דסקיות זמינות בהתבסס על המלאי
+        // Adding available discs based on inventory
         if (getNumber_of_bombs() > 0) {
             availableDiscs.add(new BombDisc(this));
         }
         if (getNumber_of_unflippedable() > 0) {
             availableDiscs.add(new UnflippableDisc(this));
         }
-        availableDiscs.add(new SimpleDisc(this)); // דסקית פשוטה זמינה תמיד
+        availableDiscs.add(new SimpleDisc(this)); // A simple disc is always available
 
-        // החזרת דסקית רנדומלית מתוך הרשימה
+        // Return a random disc from the list
         return availableDiscs.get(random.nextInt(availableDiscs.size()));
     }
 
     @Override
     public Move makeMove(PlayableLogic gameStatus) {
-        // קבלת רשימת מהלכים אפשריים
+        // Get the list of possible moves
         List<Position> possibleMoves = gameStatus.ValidMoves();
 
-        // אם אין מהלכים חוקיים, החזר null
+        // If there are no legal moves, return null
         if (possibleMoves.isEmpty()) {
             return null;
         }
 
-        // בחר מיקום רנדומלי
+        // Select a random position
         Position randomPosition = getRandomPosition(possibleMoves);
 
-        // בחר דסקית רנדומלית
+        // Select a random disc
         Disc randomDisc = getRandomDisc();
 
-        // צור והחזר את המהלך
+        // Create and return the move
         return new Move(randomPosition, randomDisc);
     }
 
