@@ -15,6 +15,7 @@ public class GameLogic implements PlayableLogic {
     private boolean _turn;
     private Disc[][] _board = new Disc[BOARD_SIZE][BOARD_SIZE];
     private Stack<Disc[][]> _moves = new Stack<>();
+    private boolean _is_copy = false;
 
 
 
@@ -22,6 +23,60 @@ public class GameLogic implements PlayableLogic {
      * Default constructor.
      */
     public GameLogic() {
+    }
+
+    public GameLogic(GameLogic gameLogic){
+        for (int i = 0; i < 2; i++) {
+            Player ply2 = getPlayer(gameLogic, i);
+            if (i == 0) {
+                this._first_player = ply2;
+                this._first_player.number_of_unflippedable = gameLogic._first_player.number_of_unflippedable;
+                this._first_player.number_of_bombs = gameLogic._first_player.number_of_bombs;
+            } else {
+                this._seconed_player = ply2;
+                this._seconed_player.number_of_unflippedable = gameLogic._seconed_player.number_of_unflippedable;
+                this._seconed_player.number_of_bombs = gameLogic._seconed_player.number_of_bombs;
+            }
+        }
+        List<Position> a = gameLogic.ValidMoves();
+        _valid_moves = new ArrayList<>();
+        for(Position move : a){
+            this._valid_moves.add(new Position(move.row(),move.col()));
+        }
+        this._board =copyBoard(gameLogic._board);
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                if(this._board[i][j]!= null){
+                    if (_board[i][j].getOwner().equals(gameLogic._first_player)){
+                        _board[i][j].setOwner(this._first_player);
+                    }
+                    else{
+                        _board[i][j].setOwner(this._seconed_player);
+                    }
+                }
+            }
+        }
+        this._turn = gameLogic._turn;
+        this._is_copy = true;
+    }
+
+    private Player getPlayer(GameLogic gameLogic, int i) {
+        Player ply1 = i == 0 ? gameLogic._first_player : gameLogic._seconed_player;
+        Player ply2;
+        if (ply1 instanceof HumanPlayer) {
+            ply2 = new HumanPlayer(ply1.isPlayerOne());
+        } else if (ply1 instanceof GreedyAI) {
+            ply2 = new GreedyAI(ply1.isPlayerOne());
+        } else if (ply1 instanceof RandomAI) {
+            ply2 = new RandomAI(ply1.isPlayerOne());
+        } else if (ply1 instanceof MinMaxAI) {
+            ply2 = new MinMaxAI(ply1.isPlayerOne());
+        }else if (ply1 instanceof MinAI) {
+            ply2 = new MinAI(ply1.isPlayerOne());
+        }else {
+            throw new IllegalArgumentException("Unknown player type");
+        }
+        return ply2;
     }
 
     /**
@@ -33,6 +88,7 @@ public class GameLogic implements PlayableLogic {
      */
     @Override
     public boolean locate_disc(Position a, Disc disc) {
+        _valid_moves = ValidMoves();
         if (!(_board[a.row()][a.col()] == null) || !_valid_moves.contains(a)) {
             return false;
         }
@@ -45,10 +101,13 @@ public class GameLogic implements PlayableLogic {
         if (Objects.equals(disc.getType(), "💣")){player.reduce_bomb();}
         _moves.push(copyBoard(_board));
         _board[a.row()][a.col()] = disc;
-        System.out.printf("Player %s placed a %s in (%d, %d)\n", isFirstPlayerTurn() ? "1" : "2", disc.getType(), a.row(), a.col());
+        if(!_is_copy) {
+            System.out.printf("Player %s placed a %s in (%d, %d)\n", isFirstPlayerTurn() ? "1" : "2", disc.getType(), a.row(), a.col());
+        }
         countFlipsInDirection(a.row(), a.col(), true);
         _turn = !_turn;
-        System.out.println();
+        if(!_is_copy){
+        System.out.println();}
         return true;
     }
 
@@ -161,9 +220,8 @@ public class GameLogic implements PlayableLogic {
      */
     @Override
     public boolean isGameFinished() {
-        _valid_moves = ValidMoves();
-        if(!_valid_moves.isEmpty()){
-            _valid_moves = null;
+        List<Position> valid_moves = ValidMoves();
+        if(!valid_moves.isEmpty()){
             return false;
         }
         int player_1_discs = 0;
@@ -183,7 +241,9 @@ public class GameLogic implements PlayableLogic {
         int loser_disc = Math.min(player_1_discs,player_2_discs);
         String winner = player_1_discs >= player_2_discs ? "1" : "2";
         String loser = player_1_discs < player_2_discs ? "1" : "2";
-        System.out.printf("Player %s wins with %d discs! Player %s had %d discs.\n\n",winner,win_disc,loser,loser_disc);
+        if (!_is_copy) {
+            System.out.printf("Player %s wins with %d discs! Player %s had %d discs.\n\n", winner, win_disc, loser, loser_disc);
+        }
         if(winner.equals("1")){
             _first_player.addWin();
         }
@@ -223,7 +283,9 @@ public class GameLogic implements PlayableLogic {
         try {
             if (!(_first_player instanceof AIPlayer) && !(_seconed_player instanceof AIPlayer)) {
                 Disc[][] last_move = _moves.pop();
-                print_undo(last_move);
+                if(!_is_copy){
+                    print_undo(last_move);
+                }
                 Player player = isFirstPlayerTurn() ? _seconed_player : _first_player;
                 Position new_piece = findNewPiece(last_move);
                 if (Objects.equals(_board[new_piece.row()][new_piece.col()].getType(), "💣")) {
@@ -236,8 +298,10 @@ public class GameLogic implements PlayableLogic {
                 _turn = !_turn;
             }
         }
-        catch (Exception e){
-            System.out.println("Undoing last move:\n\tNo previous move available to undo.\n");
+        catch (Exception e) {
+            if (!_is_copy) {
+                System.out.println("Undoing last move:\n\tNo previous move available to undo.\n");
+            }
         }
     }
 
@@ -295,7 +359,9 @@ public class GameLogic implements PlayableLogic {
                 for (Disc disc : flip_in_direction) {
                     Position a = findDisc(disc);
                     disc.setOwner(player);
-                    System.out.printf("Player %s flipped the %s in (%d, %d) \n", isFirstPlayerTurn() ? "1" : "2", disc.getType(), a.row(), a.col());
+                    if (!_is_copy) {
+                        System.out.printf("Player %s flipped the %s in (%d, %d) \n", isFirstPlayerTurn() ? "1" : "2", disc.getType(), a.row(), a.col());
+                    }
                 }
             }
             for (Disc disc : flip_in_direction) {
@@ -449,4 +515,30 @@ public class GameLogic implements PlayableLogic {
         }
         return ans;
     }
+
+    public GameLogic copy(){
+        return new GameLogic(this);
+    }
+
+    public double getScore(boolean b) {
+        int first_player_score = 0;
+        int second_player_score = 0;
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                if(_board[i][j]!=null){
+                    if(_board[i][j].getOwner() == _first_player){
+                        first_player_score++;
+                    }
+                    else {
+                        second_player_score++;
+                    }
+                }
+            }
+        }
+        if (b){
+            return first_player_score;
+        }
+        return second_player_score;
+    }
+    public Player get_current_player(){return isFirstPlayerTurn()?_first_player:_seconed_player;}
 }
