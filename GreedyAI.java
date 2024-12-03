@@ -6,31 +6,31 @@ public class GreedyAI extends AIPlayer {
         super(isPlayerOne);
     }
     //Comparator
-   public class PositionCompare implements Comparator<Position> {
+    public class PositionCompare implements Comparator<Position> {
         private final PlayableLogic gameStatus;
 
-         public PositionCompare(PlayableLogic gameStatus) {
+        public PositionCompare(PlayableLogic gameStatus) {
             this.gameStatus = gameStatus;
         }
-       // Number of flips for each position
-       public int compare(Position pos1, Position pos2) {
+        // Number of flips for each position
+        public int compare(Position pos1, Position pos2) {
             int flips1 =gameStatus.countFlips(pos1);
             int flips2 =gameStatus.countFlips(pos2);
-           // Primary comparison: by number of flips (higher is better)
+            // Primary comparison: by number of flips (higher is better)
             if (flips1 != flips2) {
                 return Integer.compare(flips2, flips1);
             }
-           // Secondary comparison: by the highest column (col)
-           if (pos1.col() != pos2.col()) {
+            // Secondary comparison: by the highest column (col)
+            if (pos1.col() != pos2.col()) {
                 return Integer.compare(pos2.col(), pos1.col());
             }
-           // Tertiary comparison: by the highest row
-                return Integer.compare(pos2.row(), pos1.row());
+            // Tertiary comparison: by the highest row
+            return Integer.compare(pos2.row(), pos1.row());
 
-         }
         }
+    }
 
-            @Override
+    @Override
     public Move makeMove(PlayableLogic gameStatus) {
         List<Position> validMoves = gameStatus.ValidMoves();
         if (validMoves.isEmpty()) {

@@ -6,7 +6,7 @@ public class RandomAI extends AIPlayer {
     public RandomAI(boolean isPlayerOne) {
         super(isPlayerOne);
     }
-private Position getRandomPosition(List<Position> possibleMoves) {
+    private Position getRandomPosition(List<Position> possibleMoves) {
         Random random = new Random();
         return possibleMoves.get(random.nextInt(possibleMoves.size()));
     }
