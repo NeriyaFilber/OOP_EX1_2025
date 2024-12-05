@@ -69,11 +69,11 @@ public class GameLogic implements PlayableLogic {
             ply2 = new GreedyAI(ply1.isPlayerOne());
         } else if (ply1 instanceof RandomAI) {
             ply2 = new RandomAI(ply1.isPlayerOne());
-        } else if (ply1 instanceof MinMaxAI) {
+            } else if (ply1 instanceof MinMaxAI) {
             ply2 = new MinMaxAI(ply1.isPlayerOne());
-        }else if (ply1 instanceof MinAI) {
+       /*  }else if (ply1 instanceof MinAI) {
             ply2 = new MinAI(ply1.isPlayerOne());
-        }else {
+        */}else {
             throw new IllegalArgumentException("Unknown player type");
         }
         return ply2;
