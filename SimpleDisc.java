@@ -1,3 +1,7 @@
+/**
+ * SimpleDisc represents a basic type of disc in the game.
+ * This disc is associated with a player and has a simple representation.
+ */
 public class SimpleDisc implements Disc {
     /**
      * The player who own the disk
@@ -13,6 +17,11 @@ public class SimpleDisc implements Disc {
         _owner = player;
     }
 
+    /**
+     * Constructs a new SimpleDisc by copying the owner from another SimpleDisc.
+     *
+     * @param disc The SimpleDisc from which to copy the owner. Must not be null.
+     */
     public SimpleDisc(SimpleDisc disc){
         this._owner = disc.getOwner();
     }

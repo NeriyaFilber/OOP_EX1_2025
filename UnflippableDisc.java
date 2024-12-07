@@ -1,19 +1,30 @@
+/**
+ * UnflappableDisc represents a special type of disc in the game
+ * that cannot be flipped by other players. This disc is associated
+ * with a specific player and has a unique representation.
+ */
 public class UnflippableDisc implements Disc {
+
     /**
-     * The player who own the disk
+     * The player who owns the disc.
      */
     private Player _owner;
 
     /**
-     * constructor to build new disk
+     * Constructs a new UnflappableDisc with a specified owner.
      *
-     * @param player The first player who own the disk
+     * @param player The player who initially owns the disc.
      */
     public UnflippableDisc(Player player) {
         _owner = player;
     }
 
-    public UnflippableDisc(UnflippableDisc disc){
+    /**
+     * Constructs a new UnflappableDisc by copying the owner from another UnflappableDisc.
+     *
+     * @param disc The UnflappableDisc from which to copy the owner. Must not be null.
+     */
+    public UnflippableDisc(UnflippableDisc disc) {
         this._owner = disc.getOwner();
     }
 
@@ -30,7 +41,7 @@ public class UnflippableDisc implements Disc {
     /**
      * Set the player who owns the Disc.
      *
-     * @param player The new player who own the disk.
+     * @param player The new player who owns the disc.
      */
     @Override
     public void setOwner(Player player) {
@@ -40,7 +51,7 @@ public class UnflippableDisc implements Disc {
     /**
      * Get the type of the disc.
      *
-     * @return textual representation of Unflappable disk.
+     * @return Textual representation of an unflappable disc ("⭕").
      */
     @Override
     public String getType() {

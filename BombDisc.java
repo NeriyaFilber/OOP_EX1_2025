@@ -1,3 +1,9 @@
+
+/**
+ * BombDisc represents a special type of disc in the game that is owned by a player
+ * and has unique behavior or characteristics (e.g., represented by a bomb symbol "💣").
+ * This class implements the Disc interface.
+ */
 public class BombDisc implements Disc {
     /**
      * The player who own the disk
@@ -13,6 +19,11 @@ public class BombDisc implements Disc {
         _owner = player;
     }
 
+    /**
+     * Creates a new BombDisc object by copying the owner from the given BombDisc.
+     *
+     * @param disc the BombDisc object from which the owner information is copied Must not be null.
+     */
     public BombDisc(BombDisc disc){
         this._owner = disc.getOwner();
     }
