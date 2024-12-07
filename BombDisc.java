@@ -33,9 +33,7 @@ public class BombDisc implements Disc {
      * @param player The new player who own the disk.
      */
     @Override
-    public void setOwner(Player player) {
-        _owner = player;
-    }
+    public void setOwner(Player player) {_owner = player;}
 
     /**
      * Get the type of the disc.
